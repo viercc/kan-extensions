@@ -1,13 +1,10 @@
 {-# LANGUAGE CPP #-}
 #include "kan-extensions-common.h"
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE GADTs #-}
 
 -----------------------------------------------------------------------------
 
@@ -195,7 +192,6 @@ instance (Foldable f, Foldable g) => Foldable (Day f g) where
 #if MIN_VERSION_base(4,8,0)
   null (Day f g _) = null f || null g
 
-  length :: (Foldable f, Foldable g) => Day f g a -> Int
   length (Day f g _) = length f * length g
 #endif
 
