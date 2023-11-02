@@ -62,7 +62,7 @@ instance (Show1 f, Show a) => Show (Lift1 f a) where showsPrec = showsPrec1
 instance (Read1 f, Read a) => Read (Lift1 f a) where readsPrec = readsPrec1
 
 boringEq :: (Eq1 f, Functor f) => f a -> f b -> Bool
-boringEq fa fb = eq1 (() <$ fa) (() <$ fb)
+boringEq fa fb = eq1 (fmap (const ()) fa) (fmap (const ()) fb)
 
 -- | Internal only, do not export
 data AlwaysFalse = AlwaysFalse
@@ -71,7 +71,7 @@ instance Eq AlwaysFalse where
   _ == _ = False
 
 emptyEq :: (Eq1 f, Functor f) => f a -> f b -> Bool
-emptyEq fa fb = eq1 (AlwaysFalse <$ fa) (AlwaysFalse <$ fb)
+emptyEq fa fb = eq1 (fmap (const AlwaysFalse) fa) (fmap (const AlwaysFalse) fb)
 
 -- | Internal only, do not export
 data EqualityTmp b = EqualityLeft (b -> Bool) | EqualityRight b
@@ -86,7 +86,7 @@ liftEq :: (Eq1 f, Functor f) => (a -> b -> Bool) -> f a -> f b -> Bool
 liftEq eq fa fb = eq1 (fmap (EqualityLeft . eq) fa) (fmap EqualityRight fb)
 
 boringCompare :: (Ord1 f, Functor f) => f a -> f b -> Ordering
-boringCompare fa fb = compare1 (() <$ fa) (() <$ fb)
+boringCompare fa fb = compare1 (fmap (const ()) fa) (fmap (const ()) fb)
 
 -- | Internal only, do not export
 data ComparisonTmp b = ComparisonLeft (b -> Ordering) | ComparisonRight b
