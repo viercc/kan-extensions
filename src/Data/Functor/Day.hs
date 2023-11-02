@@ -61,9 +61,9 @@ import Data.Profunctor.Cayley (Cayley (..))
 import Data.Profunctor.Composition (Procompose (..))
 import Data.Functor.Adjunction
 import Data.Foldable
-import Data.Semigroup.Foldable
+import Data.Semigroup.Foldable ( Foldable1(foldMap1) )
 import Data.Traversable
-import Data.Semigroup.Traversable
+import Data.Semigroup.Traversable ( Traversable1(traverse1) )
 
 import qualified Data.Array as Arr
 #ifdef __GLASGOW_HASKELL__
@@ -71,6 +71,7 @@ import Data.Typeable
 #endif
 import Prelude hiding (id, (.), foldr)
 import Data.Monoid (Sum(..))
+import Data.Functor.Apply (Apply (liftF2))
 
 
 -- | The Day convolution of two covariant functors.
@@ -240,25 +241,35 @@ instance (Traversable f, Traversable g) => Traversable (Day f g) where
       _ ->
         let fi = indices f
             gj = indices g
+            lenF = length' f
+            lenG = length' g
             idx a i j = a Arr.! (lenG * i + j)
             makeArray = Arr.listArray (0, lenF * lenG - 1)
             fromTable cs = Day fi gj (idx (makeArray cs))
         in fromTable <$> traverse h (op <$> toList f <*> toList g)
-      where
-        lenF = length' f
-        lenG = length' g
 
 instance (Traversable1 f, Traversable1 g) => Traversable1 (Day f g) where
-  traverse1 h (Day f g op) =
-    let fi = indices f
-        gj = indices g
-        idx a i j = a Arr.! (lenG * i + j)
-        makeArray = Arr.listArray (0, lenF * lenG - 1) . toList
-        fromTable cs = Day fi gj (idx (makeArray cs))
-    in fromTable <$> traverse1 h (op <$> toNonEmpty f <*> toNonEmpty g)
-      where
-        lenF = length' f
-        lenG = length' g
+  traverse1 h (Day f g op) = case mfcs of
+      Nothing  -> error "impossible!"
+      Just fcs -> fromTable <$> fcs
+    where
+      fi = indices f
+      gj = indices g
+      lenF = length' f
+      lenG = length' g
+      idx a i j = a Arr.! (lenG * i + j)
+      makeArray = Arr.listArray (0, lenF * lenG - 1) . toList
+      fromTable cs = Day fi gj (idx (makeArray cs))
+      mfcs = traverseNonEmpty h (op <$> toList f <*> toList g)
+
+traverseNonEmpty :: Apply f => (a -> f b) -> [a] -> Maybe (f [b])
+traverseNonEmpty f = go
+  where
+    go [] = Nothing
+    go (a:as) = Just $ go' a as
+
+    go' a [] = (: []) <$> f a
+    go' a (a':as) = liftF2 (:) (f a)  (go' a' as)
 
 {- | Day convolution provides a monoidal product. The associativity
 of this monoid is witnessed by 'assoc' and 'disassoc'.
