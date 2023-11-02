@@ -71,7 +71,7 @@ import Data.Typeable
 #endif
 import Prelude hiding (id, (.), foldr)
 import Data.Monoid (Sum(..))
-import Data.Functor.Apply (Apply (liftF2))
+import Data.Functor.Apply (Apply, liftF2)
 
 
 -- | The Day convolution of two covariant functors.
